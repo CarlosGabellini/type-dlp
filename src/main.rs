@@ -1,8 +1,17 @@
-use ratatui::{DefaultTerminal, crossterm::event::{self, Event::{self, Key}, KeyEventKind}};
-use crate::my_tui::{app::App, ui};
-
+// The our main for archives;
 //Start and initialize;
 mod my_tui;
+
+use ratatui::{
+    DefaultTerminal, 
+    crossterm::event::{self, Event::{self, Key}, 
+    KeyEventKind}
+};
+
+use crate::my_tui::{
+    app::App, 
+    ui
+};
 
 fn run(terminal: &mut DefaultTerminal) -> std::io::Result<()> {
     let mut app = App::new();
