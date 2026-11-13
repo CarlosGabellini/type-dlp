@@ -17,7 +17,7 @@ fn run(terminal: &mut DefaultTerminal) -> std::io::Result<()> {
     let mut app = App::new();
 
     while !app.should_quit {
-        terminal.draw(|frame| ui::draw(frame, &app))?;
+        terminal.draw(|frame| ui::draw(frame))?;
 
         if let Event::Key(key) = event::read()? {
             if key.kind == KeyEventKind::Press {
