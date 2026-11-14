@@ -3,27 +3,15 @@
 mod my_tui;
 
 use ratatui::{
-    DefaultTerminal, 
-    crossterm::event::{self, Event::{self, Key}, 
-    KeyEventKind}
+    DefaultTerminal
 };
 
-use crate::my_tui::{
-    app::App, 
-    ui
-};
+use crate::my_tui::{App, draw, events_on_keyboard};
 
-fn run(terminal: &mut DefaultTerminal) -> std::io::Result<()> {
-    let mut app = App::new();
-
-    while !app.should_quit {
-        terminal.draw(|frame| ui::draw(frame))?;
-
-        if let Event::Key(key) = event::read()? {
-            if key.kind == KeyEventKind::Press {
-                app.on_key(key);
-            }
-        }
+fn run(terminal: &mut DefaultTerminal, new_app: &mut App) -> std::io::Result<()> {
+    while !new_app.should_quit {
+        terminal.draw(|frame| draw(frame))?;
+        events_on_keyboard(new_app)?;
     }
 
     Ok(())
@@ -31,7 +19,12 @@ fn run(terminal: &mut DefaultTerminal) -> std::io::Result<()> {
 
 fn main() -> std::io::Result<()> {
     let mut terminal = ratatui::init();
-    let result = run(&mut terminal);
+
+    let mut new_app = App {
+        should_quit: false,
+    };
+
+    let result = run(&mut terminal, &mut new_app);
 
     ratatui::restore();
     result
