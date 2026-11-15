@@ -10,21 +10,19 @@ use crate::my_tui::{App, draw, events_on_keyboard};
 
 fn run(terminal: &mut DefaultTerminal, new_app: &mut App) -> std::io::Result<()> {
     while !new_app.should_quit {
-        terminal.draw(|frame| draw(frame))?;
+        terminal.draw(|frame| draw(frame, new_app))?;
         events_on_keyboard(new_app)?;
     }
 
     Ok(())
 }
 
+
 fn main() -> std::io::Result<()> {
     let mut terminal = ratatui::init();
+    let mut my_app = App::new();
 
-    let mut new_app = App {
-        should_quit: false,
-    };
-
-    let result = run(&mut terminal, &mut new_app);
+    let result = run(&mut terminal, &mut my_app);
 
     ratatui::restore();
     result
