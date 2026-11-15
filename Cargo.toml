@@ -7,4 +7,5 @@ description = "A terminal UI for yt-dlp"
 repository = "https://codeberg.org/CarlosGabellini/type-dlp"
 
 [dependencies]
+dirs = "7.0.0"
 ratatui = "0.30.2"

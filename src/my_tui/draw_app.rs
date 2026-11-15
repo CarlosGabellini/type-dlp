@@ -1,13 +1,11 @@
 //Logic of draw here;
 
-use ratatui::{Frame, 
-    layout::{Constraint, Layout}, 
-    widgets::Paragraph
+use ratatui::{Frame, layout::{Constraint, Layout, Rect}, style::Color, widgets::{Block, Paragraph}
 };
 
 use crate::my_tui::App;
 
-pub fn draw(frame: &mut Frame, new_app: &mut App) {
+pub fn draw(frame: &mut Frame, _new_app: &mut App) {
 
     let [url, video, presets, formats, queue, help, status] = Layout::vertical([
         Constraint::Length(3),
@@ -19,5 +17,15 @@ pub fn draw(frame: &mut Frame, new_app: &mut App) {
         Constraint::Length(1),
     ]).areas(frame.area());
 
-    frame.render_widget(Paragraph::new(""), url);
+    let about_url = Paragraph::new(" ")
+        .block(Block::bordered().title(" type-dlp "));
+
+    draw_url(frame, url, _new_app);
+}
+
+pub fn draw_url(frame: &mut Frame, area: Rect, app: &App) {
+    let new_text = Paragraph::new(app.url_input.as_str())
+        .block(Block::bordered().title(" type-dlp ").border_style(Color::Rgb(25, 130, 196)));
+
+    frame.render_widget(new_text, area);
 }

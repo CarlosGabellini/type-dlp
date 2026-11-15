@@ -17,7 +17,6 @@ fn run(terminal: &mut DefaultTerminal, new_app: &mut App) -> std::io::Result<()>
     Ok(())
 }
 
-
 fn main() -> std::io::Result<()> {
     let mut terminal = ratatui::init();
     let mut my_app = App::new();
