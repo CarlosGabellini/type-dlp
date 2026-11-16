@@ -1,9 +1,30 @@
 //Logic of draw here;
 
-use ratatui::{Frame, layout::{Constraint, Layout, Rect}, style::Color, widgets::{Block, Paragraph}
+use ratatui::{
+    Frame, 
+    layout::{
+        Constraint, Layout, Rect,
+    }, 
+
+    style::Color,
+    widgets::{Block, Paragraph},
 };
 
-use crate::my_tui::App;
+use crate::my_tui::{App, app::Focus};
+
+/* //----------------------------------- Color scale for our map --------------------------------------------
+        Our application will use a color scale to make it more customized; here is the code I should use 
+    for the requested color scale:
+    Vibrant_Coral = 255, 89, 94     (RGB)
+    Golden_Pollen = 255, 202, 58
+    Yellow_Green  = 138, 201, 38
+    Steel_Blue    = 25, 130, 196
+    Dusty_Grape   = 106, 76, 147
+
+        These are the colors we will use for our terminal—not necessarily in this exact order across all 
+    elements, but this will be the primary color scale!
+    //------------------------------------------------------------------------------------------------------
+ */
 
 pub fn draw(frame: &mut Frame, _new_app: &mut App) {
 
@@ -17,15 +38,72 @@ pub fn draw(frame: &mut Frame, _new_app: &mut App) {
         Constraint::Length(1),
     ]).areas(frame.area());
 
-    let about_url = Paragraph::new(" ")
-        .block(Block::bordered().title(" type-dlp "));
-
     draw_url(frame, url, _new_app);
+    video_draw(frame, video, _new_app);
+    draw_presets(frame, presets, _new_app);
+    formats_draw(frame, formats, _new_app);
+    queue_draw_information(frame, queue, _new_app);
 }
 
-pub fn draw_url(frame: &mut Frame, area: Rect, app: &App) {
+fn draw_url(frame: &mut Frame, area: Rect, app: &App) {
+
+    //Using this if statement to determine the border color based on focus
+    let border_color = if app.focus == Focus::Url {
+        Color::Rgb(25, 130, 196)
+    } else {
+        Color::Rgb(106, 130, 196)
+    };
+
     let new_text = Paragraph::new(app.url_input.as_str())
-        .block(Block::bordered().title(" type-dlp ").border_style(Color::Rgb(25, 130, 196)));
+        .block(Block::bordered().title(" type-dlp ").border_style(border_color));
 
     frame.render_widget(new_text, area);
+}
+
+fn draw_presets(frame: &mut Frame, area: Rect, app: &App) {
+    let border_draw_presets = if app.focus == Focus::Presets {
+        Color::Rgb(25, 130, 196)
+    } else {
+        Color::Rgb(106, 130, 196)
+    };
+
+    let new_text_presets = Paragraph::new(" Teste, teste!")
+        .block(Block::bordered().title(" Presets ").border_style(border_draw_presets));
+
+    frame.render_widget(new_text_presets, area);
+}
+
+fn video_draw(frame: &mut Frame, area: Rect, app: &App) {
+    let video_border = Color::Rgb(138, 201, 38);
+    
+    let text_view = Paragraph::new(" New test from here! ")
+        .block(Block::bordered().title(" video-information ").border_style(video_border));
+    
+    frame.render_widget(text_view, area);
+}
+
+fn formats_draw(frame: &mut Frame, area: Rect, app: &App) {
+    let border_draw_formats = if app.focus == Focus::Formats {
+        Color::Rgb(25, 130, 196)
+    } else {
+        Color::Rgb(106, 130, 196)
+    };
+
+    let text_view_formats = Paragraph::new(" Formats are here! ")
+        .block(Block::bordered().title(" formats ").border_style(border_draw_formats));
+
+    frame.render_widget(text_view_formats, area);
+}
+
+fn queue_draw_information(frame: &mut Frame, area: Rect, app: &App) {
+    let borders_draw_queue = if app.focus == Focus::Queue {
+        Color::Rgb(25, 130, 196)
+    } else {
+        Color::Rgb(106, 130, 196)
+    };
+
+    let text_view_queue = Paragraph::new(" Queue information here! ")
+        .block(Block::bordered().title(" queue ").border_style(borders_draw_queue));
+
+    frame.render_widget(text_view_queue, area);
 }

@@ -7,6 +7,13 @@ pub enum Focus { Url, Presets, Formats, Queue }
 #[derive(Clone, Copy, PartialEq, Eq)]
 pub enum Preset { Best, P1080, P720, AudioMp3, Custom }
 
+pub enum DownloadStatus {
+    Waiting,
+    Downloading,
+    Done,
+    Failed(String), // guarda o motivo do erro
+}
+
 pub struct VideoInfo {
     pub(super) title: String,
     pub(super) channel: String,
@@ -22,13 +29,6 @@ pub struct FormatRow {
     pub(super) size: String,
 }
 
-pub enum DownloadStatus {
-    Waiting,
-    Downloading,
-    Done,
-    Failed(String), // guarda o motivo do erro
-}
-
 pub struct DownloadItem {
     pub(super) title: String,
     pub(super) status: DownloadStatus,
@@ -39,7 +39,7 @@ pub struct DownloadItem {
 
 pub struct App {
     pub should_quit: bool,
-    pub focus: Focus,
+    pub focus: Focus,                   //The main enum for our menu;
     pub url_input: String,
 
     pub video: Option<VideoInfo>,
