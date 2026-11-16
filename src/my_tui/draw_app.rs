@@ -46,7 +46,7 @@ pub fn draw(frame: &mut Frame, _new_app: &mut App) {
 }
 
 fn draw_url(frame: &mut Frame, area: Rect, app: &App) {
-
+    
     //Using this if statement to determine the border color based on focus
     let border_color = if app.focus == Focus::Url {
         Color::Rgb(25, 130, 196)
@@ -58,6 +58,13 @@ fn draw_url(frame: &mut Frame, area: Rect, app: &App) {
         .block(Block::bordered().title(" type-dlp ").border_style(border_color));
 
     frame.render_widget(new_text, area);
+
+    if app.focus == Focus::Url {
+        let x_cursor = area.x + 1 + app.url_input.chars().count() as u16;
+        let y_cursor = area.y + 1;
+
+        frame.set_cursor_position((x_cursor, y_cursor));
+    }
 }
 
 fn draw_presets(frame: &mut Frame, area: Rect, app: &App) {
