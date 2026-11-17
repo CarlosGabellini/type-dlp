@@ -1,13 +1,9 @@
 //Logic of draw here;
 
 use ratatui::{
-    Frame, 
-    layout::{
+    Frame, layout::{
         Constraint, Layout, Rect,
-    }, 
-
-    style::Color,
-    widgets::{Block, Paragraph},
+    }, style::{Color, Style}, widgets::{Block, Paragraph, Row, Table},
 };
 
 use crate::my_tui::{App, app::{Focus::{self}, Preset::{self}}};
@@ -44,15 +40,17 @@ pub fn draw(frame: &mut Frame, _new_app: &mut App) {
     formats_draw(frame, formats, _new_app);
     queue_draw_information(frame, queue, _new_app);
 
-    let status_line = match (_new_app.has_ytdlp, _new_app.has_ffmpeg) {
-        (true, true) => "yt-dlp: [X] \tffmpeg: [X]",
-        (true, false) => "yt-dlp: [X] \tffmpeg: [ ]",
-        (false, true) => "yt-dlp: [ ] \tffmpeg: [X]",
-        (false, false) => "yt-dlp: [ ] \tffmpeg: [ ]",
+    let status_line = match &_new_app.status {
+        Some(msg) => msg.clone(),
+        None => match (_new_app.has_ytdlp, _new_app.has_ffmpeg) {
+            (true, true) => "yt-dlp: [X] \tffmpeg: [X]".to_string(),
+            (true, false) => "yt-dlp: [X] \tffmpeg: [ ]".to_string(),
+            (false, true) => "yt-dlp: [ ] \tffmpeg: [X]".to_string(),
+            (false, false) => "yt-dlp: [ ] \tffmpeg: [ ]".to_string(),
+        }
     };
 
     let status_text = Paragraph::new(status_line);
-
     frame.render_widget(status_text, status);
 }
 
@@ -110,23 +108,45 @@ fn preset_label(current: Preset, target: Preset, text: &str) -> String {
 fn video_draw(frame: &mut Frame, area: Rect, app: &App) {
     let video_border = Color::Rgb(138, 201, 38);
     
-    let text_view = Paragraph::new(" New test from here! ")
+    let text = match &app.video {
+        Some(video) => format!("{}\n{}   |   {}", video.title, video.channel, video.duration),
+        None => String::from("No video loaded"),
+    };
+
+    let text_view = Paragraph::new(text)
         .block(Block::bordered().title(" video-information ").border_style(video_border));
     
     frame.render_widget(text_view, area);
 }
 
-fn formats_draw(frame: &mut Frame, area: Rect, app: &App) {
+fn formats_draw(frame: &mut Frame, area: Rect, app: &mut App) {
     let border_draw_formats = if app.focus == Focus::Formats {
         Color::Rgb(25, 130, 196)
     } else {
         Color::Rgb(106, 130, 196)
     };
 
-    let text_view_formats = Paragraph::new(" Formats are here! ")
-        .block(Block::bordered().title(" formats ").border_style(border_draw_formats));
+    let header = Row::new(vec!["ID", "Type", "Res", "FPS", "Codec", "Size"]);
 
-    frame.render_widget(text_view_formats, area);
+    let rows: Vec<Row> = app.formats.iter().map(|f| {
+        Row::new(vec![f.id.clone(), f.kind.clone(), f.res.clone(), f.fps.clone(), f.codec.clone(), f.size.clone()])
+    }).collect();
+
+    let widths = [
+        Constraint::Length(10),
+        Constraint::Length(6),
+        Constraint::Length(11),
+        Constraint::Length(5),
+        Constraint::Length(10),
+        Constraint::Length(10),
+    ];
+
+    let table = Table::new(rows, widths)
+        .header(header)
+        .block(Block::bordered().title(" formats ").border_style(border_draw_formats))
+        .row_highlight_style(Style::new().bg(Color::Rgb(25, 130, 196)));
+
+    frame.render_stateful_widget(table, area, &mut app.formats_state);
 }
 
 fn queue_draw_information(frame: &mut Frame, area: Rect, app: &App) {
