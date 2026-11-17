@@ -2,7 +2,7 @@
 
 use ratatui::crossterm::event::{self, Event, KeyCode};
 
-use crate::my_tui::{App, app::{self, Focus, Preset, VideoInfo}};
+use crate::my_tui::{App, app::{Focus}};
 
 ///The main event loop for keyboard input control.
 pub fn events_on_keyboard(new_app: &mut App) -> std::io::Result<()> {
@@ -30,6 +30,9 @@ pub fn events_on_keyboard(new_app: &mut App) -> std::io::Result<()> {
                     Focus::Queue => new_app.focus = Focus::Formats,
                 }
             }
+
+            (Focus::Presets, KeyCode::Right) => new_app.next_preset(),
+            (Focus::Presets, KeyCode::Left) => new_app.previous_preset(),
 
             (_, KeyCode::Esc) => new_app.should_quit = true,
             _ => {}

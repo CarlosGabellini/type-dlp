@@ -21,6 +21,22 @@ fn main() -> std::io::Result<()> {
     let mut terminal = ratatui::init();
     let mut my_app = App::new();
 
+    //Context and verify yt-dlp and ffmpeg has been installed
+    let context = std::process::Command::new("yt-dlp")
+        .arg("--version")
+        .output()
+        .map(|output| output.status.success())
+        .unwrap_or(false);
+
+    let context_ffmpeg = std::process::Command::new("ffmpeg")
+        .arg("-version")            //ffmpeg needs only '-' and not '--'
+        .output()
+        .map(|output| output.status.success())
+        .unwrap_or(false);
+    
+    my_app.has_ytdlp = context;
+    my_app.has_ffmpeg = context_ffmpeg;
+    
     let result = run(&mut terminal, &mut my_app);
 
     ratatui::restore();

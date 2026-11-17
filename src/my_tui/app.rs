@@ -77,6 +77,26 @@ impl App {
             loading: false,
         }
     }
+
+    pub fn next_preset(&mut self) {
+        self.preset = match self.preset {
+            Preset::Best => Preset::P1080,
+            Preset::P1080 => Preset::P720,
+            Preset::P720 => Preset::AudioMp3,
+            Preset::AudioMp3 => Preset::Custom,
+            Preset::Custom => Preset::Best,
+        };
+    }
+
+    pub fn previous_preset(&mut self) {
+        self.preset = match self.preset {
+            Preset::Best => Preset::Custom,
+            Preset::Custom => Preset::AudioMp3,
+            Preset::AudioMp3 => Preset::P720,
+            Preset::P720 => Preset::P1080,
+            Preset::P1080 => Preset::Best,
+        };
+    }
 }
 
 impl Default for App {

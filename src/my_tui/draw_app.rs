@@ -10,7 +10,7 @@ use ratatui::{
     widgets::{Block, Paragraph},
 };
 
-use crate::my_tui::{App, app::Focus};
+use crate::my_tui::{App, app::{Focus::{self}, Preset::{self}}};
 
 /* //----------------------------------- Color scale for our map --------------------------------------------
         Our application will use a color scale to make it more customized; here is the code I should use 
@@ -43,6 +43,17 @@ pub fn draw(frame: &mut Frame, _new_app: &mut App) {
     draw_presets(frame, presets, _new_app);
     formats_draw(frame, formats, _new_app);
     queue_draw_information(frame, queue, _new_app);
+
+    let status_line = match (_new_app.has_ytdlp, _new_app.has_ffmpeg) {
+        (true, true) => "yt-dlp: [X] \tffmpeg: [X]",
+        (true, false) => "yt-dlp: [X] \tffmpeg: [ ]",
+        (false, true) => "yt-dlp: [ ] \tffmpeg: [X]",
+        (false, false) => "yt-dlp: [ ] \tffmpeg: [ ]",
+    };
+
+    let status_text = Paragraph::new(status_line);
+
+    frame.render_widget(status_text, status);
 }
 
 fn draw_url(frame: &mut Frame, area: Rect, app: &App) {
@@ -74,10 +85,26 @@ fn draw_presets(frame: &mut Frame, area: Rect, app: &App) {
         Color::Rgb(106, 130, 196)
     };
 
-    let new_text_presets = Paragraph::new(" Teste, teste!")
-        .block(Block::bordered().title(" Presets ").border_style(border_draw_presets));
+    //We calling the auxiliar function for define the variables;
+    let best = preset_label(app.preset, Preset::Best, "Best");
+    let p1080 = preset_label(app.preset, Preset::P1080, "P1080");
+    let p720 = preset_label(app.preset, Preset::P720, "P720");
+    let audio_mp3 = preset_label(app.preset, Preset::AudioMp3, "Audio MP3");
+    let custom = preset_label(app.preset, Preset::Custom, "Custom");
 
+    //Here, the presets are together for only line;
+    let line = format!("Preset {}  {}  {}  {}  {}", best, p1080, p720, audio_mp3, custom);
+
+    let new_text_presets = Paragraph::new(line.as_str());
+    
     frame.render_widget(new_text_presets, area);
+}
+
+fn preset_label(current: Preset, target: Preset, text: &str) -> String {
+    match current == target {
+        true => format!("[ {} ]", text),
+        false => text.to_string(),
+    }
 }
 
 fn video_draw(frame: &mut Frame, area: Rect, app: &App) {
