@@ -1,8 +1,8 @@
-use std::process::Command;
+use std::{path::Path, process::Command};
 
 use serde::Deserialize;
 
-use crate::my_tui::app::FormatRow;
+use crate::my_tui::app::{FormatRow, Preset};
 
 #[derive(Deserialize)]
 pub struct YtDlpOutput {
@@ -57,7 +57,7 @@ pub fn filter_popular(formats: Vec<FormatJson>) -> Vec<FormatJson> {
         let is_audio_only = f.vcodec.as_deref() == Some("none");
 
         if is_audio_only {
-            if !picked_audio {
+            if picked_audio {
                 continue;
             }
 
@@ -107,4 +107,33 @@ pub fn to_format_row(f: &FormatJson) -> FormatRow {
 pub fn format_duration(secods: f64) -> String {
     let total = secods.round() as u64;
     format!("{:02}:{:02}", total / 60, total % 60)
+}
+
+pub fn preset_args(preset: Preset, custom_format: Option<&str>) -> Vec<String> {
+    let v = |s: &[&str]| s.iter().map(|x| x.to_string()).collect();
+    match preset {
+        Preset::Best => v(&["-f", "bestvideo+bestaudio/best"]),
+        Preset::P1080 => v(&["-f", "bestvideo[height<=1080]+bestaudio/best[height<=1080]"]),
+        Preset::P720 => v(&["-f", "bestvideo[height<=720]+bestaudio/best[height<=720]"]),
+        Preset::AudioMp3 => v(&["-x", "--audio-format", "mp3"]),
+        Preset::Custom => v(&["-f", custom_format.unwrap_or("best")]),
+    }
+}
+
+pub fn download_video(url: &str, args: &[String], dir: &Path) -> Result<(), String> {
+    let template = dir.join("%(title)s.%(ext)s");
+
+    let output = Command::new("yt-dlp")
+        .args(args)
+        .arg("-o").arg(&template)
+        .arg(url)
+        .output()
+        .map_err(|e| format!("Fail to execute, error: {e}"))?;
+
+    if !output.status.success() {
+        let err = String::from_utf8_lossy(&output.stderr);
+        return Err(format!("yt-dlp failed: {}", err.lines().last().unwrap_or("unknown error")));
+    }
+
+    Ok(())
 }

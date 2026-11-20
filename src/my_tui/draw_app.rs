@@ -3,12 +3,10 @@
 use ratatui::{
     Frame, layout::{
         Constraint, Layout, Rect,
-    },
-    style::{Color, Style}, 
-    widgets::{Block, Paragraph, Row, Table},
+    }, style::{Color, Style}, widgets::{Block, List, ListItem, Paragraph, Row, Table},
 };
 
-use crate::my_tui::{App, app::{Focus::{self}, Preset::{self}}};
+use crate::my_tui::{App, app::{DownloadStatus, Focus::{self}, Preset::{self}}};
 
 /* //----------------------------------- Color scale for our map --------------------------------------------
         Our application will use a color scale to make it more customized; here is the code I should use 
@@ -147,15 +145,27 @@ fn formats_draw(frame: &mut Frame, area: Rect, app: &mut App) {
     frame.render_stateful_widget(table, area, &mut app.formats_state);
 }
 
-fn queue_draw_information(frame: &mut Frame, area: Rect, app: &App) {
+fn queue_draw_information(frame: &mut Frame, area: Rect, app: &mut App) {
     let borders_draw_queue = if app.focus == Focus::Queue {
         Color::Rgb(25, 130, 196)
     } else {
         Color::Rgb(106, 130, 196)
     };
 
-    let text_view_queue = Paragraph::new(" Queue information here! ")
-        .block(Block::bordered().title(" queue ").border_style(borders_draw_queue));
-
-    frame.render_widget(text_view_queue, area);
+    let items: Vec<ListItem> = app.queue.iter().map(|d| {
+            let status = match &d.status {
+                DownloadStatus::Waiting => "waiting".to_string(),
+                DownloadStatus::Downloading => "downloading...".to_string(),
+                DownloadStatus::Done => "done".to_string(),
+                DownloadStatus::Failed(e) => format!("failed: {e}"),
+            };
+            
+            ListItem::new(format!("{}  [{}]", d.title, status))
+        }).collect();
+    
+        let list = List::new(items)
+            .block(Block::bordered().title(" queue ").border_style(borders_draw_queue))
+            .highlight_style(Style::new().bg(Color::Rgb(25, 130, 196)));
+    
+        frame.render_stateful_widget(list, area, &mut app.queue_state);
 }

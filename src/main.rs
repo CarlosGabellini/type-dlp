@@ -13,6 +13,8 @@ fn run(terminal: &mut DefaultTerminal, new_app: &mut App) -> std::io::Result<()>
     while !new_app.should_quit {
         terminal.draw(|frame| draw(frame, new_app))?;
         events_on_keyboard(new_app)?;
+        new_app.pool_fetch_result();
+        new_app.poll_downloads();
     }
 
     Ok(())
