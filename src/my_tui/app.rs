@@ -16,6 +16,11 @@ pub enum DownloadStatus {
     Failed(String), // guarda o motivo do erro
 }
 
+pub enum DownloadMsg {
+    Progress {pct: f32, speed: String, eta: String},
+    Finished(Result<(), String>),
+}
+
 pub struct VideoInfo {
     pub title: String,
     pub channel: String,
@@ -63,7 +68,7 @@ pub struct App {
     pub loading: bool,
     pub video_result: Option<Receiver<Result<ytdlp::YtDlpOutput, String>>>,
 
-    pub download_rx: Option<Receiver<Result<(), String>>>,
+    pub download_rx: Option<Receiver<DownloadMsg>>,
     pub current_download: Option<usize>,    
 }
 
@@ -208,21 +213,50 @@ impl App {
         use std::thread;
     
         if let (Some(rx), Some(idx)) = (&self.download_rx, self.current_download) {
-            let result = match rx.try_recv() {
-                Ok(r) => r,
-                Err(TryRecvError::Empty) => return,
-                Err(TryRecvError::Disconnected) => Err("Download thread died".to_string()),
+            let mut finished: Option<Result<(), String>> = None;
+    
+            loop {
+                match rx.try_recv() {
+                    Ok(DownloadMsg::Progress { pct, speed, eta }) => {
+                        let item = &mut self.queue[idx];
+                        item.progress = pct;
+                        item.speed = speed;
+                        item.eta = eta;
+                    }
+                    
+                    Ok(DownloadMsg::Finished(r)) => {
+                        finished = Some(r);
+                        break;
+                    }
+                    
+                    Err(TryRecvError::Empty) => break,
+                    Err(TryRecvError::Disconnected) => {
+                        finished = Some(Err("Download thread died".to_string()));
+                        break;
+                    }
+                }
+            }
+    
+            // ainda baixando: espera o próximo frame
+            let Some(result) = finished else {
+                return;
             };
     
-            self.queue[idx].status = match result {
-                Ok(()) => DownloadStatus::Done,
-                Err(e) => DownloadStatus::Failed(e),
-            };
-            self.queue[idx].progress = if matches!(self.queue[idx].status, DownloadStatus::Done) { 100.0 } else { 0.0 };
+            let item = &mut self.queue[idx];
+
+            match result {
+                Ok(()) => {
+                    item.status = DownloadStatus::Done;
+                    item.progress = 100.0;
+                }
+                
+                Err(e) => item.status = DownloadStatus::Failed(e),
+            }
+            
             self.download_rx = None;
             self.current_download = None;
         }
-        
+    
         let Some(idx) = self.queue.iter().position(|i| matches!(i.status, DownloadStatus::Waiting)) else {
             return;
         };
@@ -234,8 +268,10 @@ impl App {
         let dir = self.download_dir.clone();
     
         let (tx, rx) = channel();
+        
         thread::spawn(move || {
-            let _ = tx.send(ytdlp::download_video(&url, &args, &dir));
+            let result = ytdlp::download_video(&url, &args, &dir, &tx);
+            let _ = tx.send(DownloadMsg::Finished(result));
         });
     
         self.download_rx = Some(rx);

@@ -1,8 +1,8 @@
-use std::{path::Path, process::Command};
+use std::{io::{BufRead, BufReader}, path::Path, process::{Command, Stdio}, sync::mpsc::Sender};
 
 use serde::Deserialize;
 
-use crate::my_tui::app::{FormatRow, Preset};
+use crate::my_tui::app::{DownloadMsg, FormatRow, Preset};
 
 #[derive(Deserialize)]
 pub struct YtDlpOutput {
@@ -111,29 +111,76 @@ pub fn format_duration(secods: f64) -> String {
 
 pub fn preset_args(preset: Preset, custom_format: Option<&str>) -> Vec<String> {
     let v = |s: &[&str]| s.iter().map(|x| x.to_string()).collect();
+
+    //Adjust presets to convert ALL FOR MP4;
+
     match preset {
-        Preset::Best => v(&["-f", "bestvideo+bestaudio/best"]),
-        Preset::P1080 => v(&["-f", "bestvideo[height<=1080]+bestaudio/best[height<=1080]"]),
-        Preset::P720 => v(&["-f", "bestvideo[height<=720]+bestaudio/best[height<=720]"]),
+        Preset::Best => v(&["-f", "bestvideo[ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]/best"]),
+        Preset::P1080 => v(&["-f", "bestvideo[height<=1080][ext=mp4]+bestaudio[ext=m4a]/best[height<=1080][ext=mp4]/best[height<=1080]"]),
+        Preset::P720 => v(&["-f", "bestvideo[height<=720][ext=mp4]+bestaudio[ext=m4a]/best[height<=720][ext=mp4]/best[height<=720]"]),
         Preset::AudioMp3 => v(&["-x", "--audio-format", "mp3"]),
         Preset::Custom => v(&["-f", custom_format.unwrap_or("best")]),
     }
 }
 
-pub fn download_video(url: &str, args: &[String], dir: &Path) -> Result<(), String> {
+pub fn download_video(url: &str, args: &[String],dir: &Path,tx: &Sender<DownloadMsg>) -> Result<(), String> {
     let template = dir.join("%(title)s.%(ext)s");
 
-    let output = Command::new("yt-dlp")
+    let mut child = Command::new("yt-dlp")
         .args(args)
+        .arg("--newline")
+        .arg("--progress-template")
+        .arg("download:%(progress._percent_str)s|%(progress._speed_str)s|%(progress._eta_str)s")
         .arg("-o").arg(&template)
         .arg(url)
-        .output()
+        .arg("--merge-output-format").arg("mp4")
+        .stdout(Stdio::piped())
+        .stderr(Stdio::piped())
+        .spawn()
         .map_err(|e| format!("Fail to execute, error: {e}"))?;
 
-    if !output.status.success() {
-        let err = String::from_utf8_lossy(&output.stderr);
-        return Err(format!("yt-dlp failed: {}", err.lines().last().unwrap_or("unknown error")));
+    
+    let stderr = child.stderr.take().ok_or("Could not read stderr")?;
+    
+    let err_thread = std::thread::spawn(move || {
+        BufReader::new(stderr)
+            .lines()
+            .map_while(Result::ok)
+            .last()
+            .unwrap_or_default()
+    });
+
+    let stdout = child.stdout.take().ok_or("Could not read stdout")?;
+
+    for line in BufReader::new(stdout).lines().map_while(Result::ok) {
+        let parts: Vec<&str> = line.split('|').collect();
+
+        if parts.len() != 3 {
+            continue; // linhas que não são do template (ex.: [Merger])
+
+        }
+
+        let Ok(pct) = parts[0].trim().trim_end_matches('%').parse::<f32>() else {
+            continue;
+        };
+
+        let _ = tx.send(DownloadMsg::Progress {
+            pct,
+            speed: parts[1].trim().to_string(),
+            eta: parts[2].trim().to_string(),
+        });
     }
 
-    Ok(())
+    let status = child.wait().map_err(|e| format!("Wait failed: {e}"))?;
+    let last_err = err_thread.join().unwrap_or_default();
+
+    if status.success() {
+        Ok(())
+
+    } else if last_err.is_empty() {
+        Err("yt-dlp failed".to_string())
+
+    } else {
+        Err(format!("yt-dlp failed: {last_err}"))
+    }
 }

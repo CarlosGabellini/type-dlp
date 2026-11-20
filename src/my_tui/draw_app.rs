@@ -3,7 +3,7 @@
 use ratatui::{
     Frame, layout::{
         Constraint, Layout, Rect,
-    }, style::{Color, Style}, widgets::{Block, List, ListItem, Paragraph, Row, Table},
+    }, style::{Color, Style}, text::{Line, Span}, widgets::{Block, List, ListItem, Paragraph, Row, Table},
 };
 
 use crate::my_tui::{App, app::{DownloadStatus, Focus::{self}, Preset::{self}}};
@@ -145,27 +145,73 @@ fn formats_draw(frame: &mut Frame, area: Rect, app: &mut App) {
     frame.render_stateful_widget(table, area, &mut app.formats_state);
 }
 
+
+fn bar(pct: f32, width: usize) -> String {
+    let filled = ((pct.clamp(0.0, 100.0) / 100.0) * width as f32).round() as usize;
+    format!("{}{}", "█".repeat(filled), "░".repeat(width - filled))
+}
+
+fn short_title(title: &str, max: usize) -> String {
+    if title.chars().count() > max {
+        let cut: String = title.chars().take(max - 1).collect();
+        format!("{cut}…")
+
+    } else {
+        title.to_string()
+    }
+}
+
 fn queue_draw_information(frame: &mut Frame, area: Rect, app: &mut App) {
-    let borders_draw_queue = if app.focus == Focus::Queue {
+    let border = if app.focus == Focus::Queue {
         Color::Rgb(25, 130, 196)
     } else {
         Color::Rgb(106, 130, 196)
     };
 
+    let blue = Color::Rgb(25, 130, 196);
+    let green = Color::Rgb(138, 201, 38);
+    let coral = Color::Rgb(255, 89, 94);
+
+    // largura útil dentro das bordas
+    let inner = area.width.saturating_sub(2) as usize;
+    // o que sobra depois de ícone, título, %, velocidade e ETA vira barra
+    let bar_width = inner.saturating_sub(48).clamp(5, 30);
+
     let items: Vec<ListItem> = app.queue.iter().map(|d| {
-            let status = match &d.status {
-                DownloadStatus::Waiting => "waiting".to_string(),
-                DownloadStatus::Downloading => "downloading...".to_string(),
-                DownloadStatus::Done => "done".to_string(),
-                DownloadStatus::Failed(e) => format!("failed: {e}"),
-            };
-            
-            ListItem::new(format!("{}  [{}]", d.title, status))
-        }).collect();
-    
-        let list = List::new(items)
-            .block(Block::bordered().title(" queue ").border_style(borders_draw_queue))
-            .highlight_style(Style::new().bg(Color::Rgb(25, 130, 196)));
-    
-        frame.render_stateful_widget(list, area, &mut app.queue_state);
+        let title = format!("{:<15}", short_title(&d.title, 15));
+
+        let line = match &d.status {
+            DownloadStatus::Downloading => Line::from(vec![
+                Span::styled("▶ ", Style::new().fg(blue)),
+                Span::raw(format!("{title}  ")),
+                Span::styled(bar(d.progress, bar_width), Style::new().fg(blue)),
+                Span::raw(format!(" {:>3.0}%", d.progress)),
+                Span::raw(format!("  {:>11}", d.speed)),
+                Span::raw(format!("  ETA {:>5}", d.eta)),
+            ]),
+            DownloadStatus::Waiting => Line::from(vec![
+                Span::styled("○ ", Style::new().fg(Color::Gray)),
+                Span::raw(format!("{title}  ")),
+                Span::styled("waiting", Style::new().fg(Color::Gray)),
+            ]),
+            DownloadStatus::Done => Line::from(vec![
+                Span::styled("✔ ", Style::new().fg(green)),
+                Span::raw(format!("{title}  ")),
+                Span::styled("done", Style::new().fg(green)),
+            ]),
+            DownloadStatus::Failed(e) => Line::from(vec![
+                Span::styled("✘ ", Style::new().fg(coral)),
+                Span::raw(format!("{title}  ")),
+                Span::styled(format!("failed: {e}"), Style::new().fg(coral)),
+            ]),
+        };
+
+        ListItem::new(line)
+    }).collect();
+
+    let list = List::new(items)
+        .block(Block::bordered().title(" queue ").border_style(border))
+        .highlight_style(Style::new().add_modifier(ratatui::style::Modifier::REVERSED));
+
+    frame.render_stateful_widget(list, area, &mut app.queue_state);
 }
