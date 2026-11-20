@@ -1,5 +1,5 @@
 //Here is the state of our mod.rs, thats controling the tui;
-mod app;
+pub mod app;
 mod draw_app;
 mod events;
 

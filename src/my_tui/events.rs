@@ -2,7 +2,7 @@
 
 use ratatui::crossterm::event::{self, Event, KeyCode};
 
-use crate::my_tui::{App, app::{Focus, FormatRow, VideoInfo}};
+use crate::{my_tui::{App, app::{Focus, VideoInfo}}, ytdlp};
 
 ///The main event loop for keyboard input control.
 pub fn events_on_keyboard(new_app: &mut App) -> std::io::Result<()> {
@@ -20,21 +20,24 @@ pub fn events_on_keyboard(new_app: &mut App) -> std::io::Result<()> {
                     new_app.status = Some("yt-dlp has not found!".to_string());
 
                 } else {
-                    new_app.status = None;
-                    new_app.video = Some(VideoInfo {
-                        title: "Rust TUI".to_string(),
-                        channel: "No boilepart".to_string(),
-                        duration: "24:15".to_string(),
-                    });
+                    match ytdlp::fetch_video_info(&new_app.url_input) {
+                        Ok(info) => {
+                            new_app.video = Some(VideoInfo {
+                                title: info.title,
+                                channel: info.uploader.clone().unwrap_or_default(),
+                                duration: ytdlp::format_duration(info.duration.unwrap_or(0.0)),
+                            });
 
-                    new_app.formats = vec![
-                        FormatRow { id: "137+140".into(), kind: "v+a".into(), res: "1920x1080".into(), fps: "30".into(), codec: "avc1+aac".into(), size: "~210 MiB".into() },
-                        FormatRow { id: "248+251".into(), kind: "v+a".into(), res: "1920x1080".into(), fps: "30".into(), codec: "vp9+opus".into(), size: "~160 MiB".into() },
-                        FormatRow { id: "22".into(), kind: "v+a".into(), res: "1280x720".into(), fps: "30".into(), codec: "avc1+aac".into(), size: "~140 MiB".into() },
-                        FormatRow { id: "251".into(), kind: "audio".into(), res: "—".into(), fps: "—".into(), codec: "opus".into(), size: "~14 MiB".into() },
-                    ];
-                    
-                    new_app.formats_state.select(Some(0));
+                            let filtered = ytdlp::filter_popular(info.formats);
+                            new_app.formats = filtered.iter().map(ytdlp::to_format_row).collect();
+                            new_app.formats_state.select(Some(0));
+                            new_app.status = None;
+    
+                        }
+                        Err(e) => {
+                            new_app.status = Some(e);
+                        }
+                    }
                 }
             },
 

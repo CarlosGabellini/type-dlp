@@ -15,26 +15,26 @@ pub enum DownloadStatus {
 }
 
 pub struct VideoInfo {
-    pub(super) title: String,
-    pub(super) channel: String,
-    pub(super) duration: String,
+    pub title: String,
+    pub channel: String,
+    pub duration: String,
 }
 
 pub struct FormatRow {
-    pub(super) id: String,
-    pub(super) kind: String,
-    pub(super) res: String,
-    pub(super) fps: String,
-    pub(super) codec: String,
-    pub(super) size: String,
+    pub id: String,
+    pub kind: String,
+    pub res: String,
+    pub fps: String,
+    pub codec: String,
+    pub size: String,
 }
 
 pub struct DownloadItem {
-    pub(super) title: String,
-    pub(super) status: DownloadStatus,
-    pub(super) progress: f32,
-    pub(super) speed: String,
-    pub(super) eta: String,
+    pub title: String,
+    pub status: DownloadStatus,
+    pub progress: f32,
+    pub speed: String,
+    pub eta: String,
 }
 
 pub struct App {

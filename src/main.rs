@@ -1,6 +1,7 @@
 // The our main for archives;
 //Start and initialize;
 mod my_tui;
+mod ytdlp;
 
 use ratatui::{
     DefaultTerminal

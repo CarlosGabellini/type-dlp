@@ -3,7 +3,9 @@
 use ratatui::{
     Frame, layout::{
         Constraint, Layout, Rect,
-    }, style::{Color, Style}, widgets::{Block, Paragraph, Row, Table},
+    },
+    style::{Color, Style}, 
+    widgets::{Block, Paragraph, Row, Table},
 };
 
 use crate::my_tui::{App, app::{Focus::{self}, Preset::{self}}};
@@ -19,6 +21,8 @@ use crate::my_tui::{App, app::{Focus::{self}, Preset::{self}}};
 
         These are the colors we will use for our terminal—not necessarily in this exact order across all 
     elements, but this will be the primary color scale!
+
+    Credit for Scale of colors available in: https://coolors.co/palette/ff595e-ffca3a-8ac926-1982c4-6a4c93
     //------------------------------------------------------------------------------------------------------
  */
 
@@ -77,12 +81,6 @@ fn draw_url(frame: &mut Frame, area: Rect, app: &App) {
 }
 
 fn draw_presets(frame: &mut Frame, area: Rect, app: &App) {
-    let border_draw_presets = if app.focus == Focus::Presets {
-        Color::Rgb(25, 130, 196)
-    } else {
-        Color::Rgb(106, 130, 196)
-    };
-
     //We calling the auxiliar function for define the variables;
     let best = preset_label(app.preset, Preset::Best, "Best");
     let p1080 = preset_label(app.preset, Preset::P1080, "P1080");
