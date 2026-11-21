@@ -5,7 +5,7 @@
 set -euo pipefail
 
 REPO="CarlosGabellini/type-dlp"
-BIN_NAME="type-dlp-x86_64-linux"
+BIN_NAME="type-dlp"
 INSTALL_DIR="/usr/local/bin"
 
 TYPE_DLP_URL="https://github.com/${REPO}/releases/download/v1.0.0/{BIN_NAME}"
