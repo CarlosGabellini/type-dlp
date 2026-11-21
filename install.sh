@@ -34,6 +34,37 @@ fi
 have curl                     || error "curl is required. Install it and run this script again."
 have sudo                     || error "sudo is required."
 
+# ---------- update ----------
+
+if [ "${1:-}" = "--update" ]; then
+    info "Updating yt-dlp..."
+    sudo curl -fL "$YTDLP_URL" -o "${INSTALL_DIR}/yt-dlp"
+    sudo chmod +x "${INSTALL_DIR}/yt-dlp"
+
+    info "Updating ffmpeg..."
+    if have apt-get; then
+        sudo apt-get update
+        sudo apt-get install -y --only-upgrade ffmpeg
+    elif have dnf; then
+        sudo dnf upgrade -y ffmpeg
+    elif have pacman; then
+        info "Arch-based system: update ffmpeg with 'sudo pacman -Syu' when you update your system."
+    else
+        error "No supported package manager found. Update ffmpeg manually."
+    fi
+
+    info "Updating type-dlp..."
+    sudo curl -fL "$TYPE_DLP_URL" -o "${INSTALL_DIR}/type-dlp"
+    sudo chmod +x "${INSTALL_DIR}/type-dlp"
+
+    info "Done."
+    exit 0
+fi
+
+# Update for yt-dlp and ffmpeg if necessary;
+
+# -------- Continue ----------
+
 info "This script will use sudo to install ffmpeg, yt-dlp and type-dlp."
 read -r -p "Continue? [y/N] " answer < /dev/tty
 case "$answer" in

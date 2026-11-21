@@ -4,7 +4,7 @@ A terminal user interface (TUI) for [yt-dlp](https://github.com/yt-dlp/yt-dlp), 
 
 Paste a URL, pick a quick preset or a specific format, and watch your downloads run in a queue with real-time progress, all without leaving the terminal.
 
-![main-photo-app](assets/01-type-dlp-main.png)
+![main-photo-app](assets/01-new-asset-for-type-dlp.png)
 
 ## Features
 
@@ -28,6 +28,22 @@ Use the installer script to install `ffmpeg`, `yt-dlp` and `type-dlp` into `/usr
 ```bash
 curl -fsSL https://raw.githubusercontent.com/CarlosGabellini/type-dlp/master/install.sh | bash
 ```
+
+## Update
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/CarlosGabellini/type-dlp/master/install.sh | bash -s -- --update
+```
+
+This updates `yt-dlp` and `type-dlp`. On Debian/Ubuntu and Fedora it also upgrades `ffmpeg`; on Arch-based systems, update `ffmpeg` with your regular system upgrade (`sudo pacman -Syu`).
+
+## Uninstall
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/CarlosGabellini/type-dlp/master/install.sh | bash -s -- --uninstall
+```
+
+This removes `type-dlp` and `yt-dlp` from `/usr/local/bin`. `ffmpeg` is left untouched, since other programs may use it.
 
 ### From source
 
