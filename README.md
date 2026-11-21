@@ -4,7 +4,7 @@ A terminal user interface (TUI) for [yt-dlp](https://github.com/yt-dlp/yt-dlp), 
 
 Paste a URL, pick a quick preset or a specific format, and watch your downloads run in a queue with real-time progress, all without leaving the terminal.
 
-![main-photo-app](assets/main-photo-app.png)
+![main-photo-app](assets/01-type-dlp-main.png)
 
 ## Features
 
@@ -26,7 +26,7 @@ Paste a URL, pick a quick preset or a specific format, and watch your downloads 
 Use the installer script to install `ffmpeg`, `yt-dlp` and `type-dlp` into `/usr/local/bin`.
 
 ```bash
-curl -fL https://raw.githubusercontent.com/CarlosGabellini/type-dlp/main/install.sh | sudo bash
+curl -fsSL https://raw.githubusercontent.com/CarlosGabellini/type-dlp/master/install.sh | bash
 ```
 
 ### From source
