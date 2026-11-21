@@ -8,7 +8,7 @@ REPO="CarlosGabellini/type-dlp"
 BIN_NAME="type-dlp"
 INSTALL_DIR="/usr/local/bin"
 
-TYPE_DLP_URL="https://github.com/${REPO}/releases/download/v1.0.0/{BIN_NAME}"
+TYPE_DLP_URL="https://github.com/CarlosGabellini/type-dlp/releases/download/v1.0.0/type-dlp"
 YTDLP_URL="https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp_linux"
 
 # ---------- helpers ----------
