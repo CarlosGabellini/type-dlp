@@ -3,7 +3,11 @@
 use ratatui::{
     Frame, layout::{
         Constraint, Layout, Rect,
-    }, style::{Color, Style}, text::{Line, Span}, widgets::{Block, List, ListItem, Paragraph, Row, Table},
+    }, 
+
+    style::{Color, Style}, 
+    text::{Line, Span}, 
+    widgets::{Block, List, ListItem, Paragraph, Row, Table},
 };
 
 use crate::my_tui::{App, app::{DownloadStatus, Focus::{self}, Preset::{self}}};
@@ -26,13 +30,12 @@ use crate::my_tui::{App, app::{DownloadStatus, Focus::{self}, Preset::{self}}};
 
 pub fn draw(frame: &mut Frame, _new_app: &mut App) {
 
-    let [url, video, presets, formats, queue, help, status] = Layout::vertical([
+    let [url, video, presets, formats, queue, status] = Layout::vertical([
         Constraint::Length(3),
         Constraint::Length(4),
         Constraint::Length(1),
         Constraint::Min(6),
         Constraint::Length(5),
-        Constraint::Length(1),
         Constraint::Length(1),
     ]).areas(frame.area());
 

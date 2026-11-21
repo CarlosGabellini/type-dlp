@@ -21,7 +21,6 @@ pub struct FormatJson {
     pub acodec: Option<String>,
     pub filesize: Option<u64>,
     pub filesize_approx: Option<u64>,
-    pub format_note: Option<String>,
 }
 
 //Run the command ty-dlp -J and returns some information;
@@ -111,7 +110,6 @@ pub fn format_duration(secods: f64) -> String {
 
 pub fn preset_args(preset: Preset, custom_format: Option<&str>) -> Vec<String> {
     let v = |s: &[&str]| s.iter().map(|x| x.to_string()).collect();
-
     //Adjust presets to convert ALL FOR MP4;
 
     match preset {
@@ -123,7 +121,7 @@ pub fn preset_args(preset: Preset, custom_format: Option<&str>) -> Vec<String> {
     }
 }
 
-pub fn download_video(url: &str, args: &[String],dir: &Path,tx: &Sender<DownloadMsg>) -> Result<(), String> {
+pub fn download_video(url: &str, args: &[String], dir: &Path, tx: &Sender<DownloadMsg>) -> Result<(), String> {
     let template = dir.join("%(title)s.%(ext)s");
 
     let mut child = Command::new("yt-dlp")
@@ -156,7 +154,7 @@ pub fn download_video(url: &str, args: &[String],dir: &Path,tx: &Sender<Download
         let parts: Vec<&str> = line.split('|').collect();
 
         if parts.len() != 3 {
-            continue; // linhas que não são do template (ex.: [Merger])
+            continue;
 
         }
 

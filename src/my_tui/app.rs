@@ -179,8 +179,8 @@ impl App {
             self.status = Some("Load a video first!".to_string());
             return;
         };
-    
-        // Enter em Formats sempre significa "usar a linha escolhida", então vira Custom
+
+        
         let preset = if self.focus == Focus::Formats { Preset::Custom } else { self.preset };
     
         let custom_format = self.formats_state.selected()
